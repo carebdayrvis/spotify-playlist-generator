@@ -70,10 +70,15 @@ func main() {
 		tmpClient := auth.NewClient(token)
 		client = &tmpClient
 
-		http.Redirect(w, r, "/generate", 302)
+		http.Redirect(w, r, "/home", 302)
 	})
 
 	http.HandleFunc("/generate", func(w http.ResponseWriter, r *http.Request) {
+		if client == nil {
+			http.Redirect(w, r, "/connect", 302)
+			return
+		}
+
 		err := loadCache()
 		if err != nil {
 			http.Error(w, "Problem generating playlist: "+err.Error(), http.StatusInternalServerError)
@@ -81,11 +86,6 @@ func main() {
 		}
 
 		cache.Recommendations = nil
-		if client == nil {
-			http.Redirect(w, r, "/connect", 302)
-			return
-		}
-
 		opts := r.URL.Query()
 
 		replace, err := strconv.ParseBool(opts.Get("replace"))
